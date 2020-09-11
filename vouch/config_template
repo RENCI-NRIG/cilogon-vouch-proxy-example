@@ -1,0 +1,53 @@
+# vouch config
+# bare minimum to get vouch running with OpenID Connect (such as okta)
+
+vouch:
+  # domains:
+  # valid domains that the jwt cookies can be set into
+  # the callback_urls will be to these domains
+#  domains:
+#  - yourdomain.com
+#  - yourotherdomain.com
+
+  # - OR -
+  # instead of setting specific domains you may prefer to allow all users...
+  # set allowAllUsers: true to use Vouch Proxy to just accept anyone who can authenticate at the configured provider
+  # and set vouch.cookie.domain to the domain you wish to protect
+  allowAllUsers: true
+
+  cookie:
+    # allow the jwt/cookie to be set into http://yourdomain.com (defaults to true, requiring https://yourdomain.com)
+    secure: false
+    # vouch.cookie.domain must be set when enabling allowAllUsers
+    domain: 127.0.0.1
+    name: cilogon-example
+
+  headers:
+    jwt: X-Vouch-Token                # VOUCH_HEADERS_JWT
+    querystring: access_token         # VOUCH_HEADERS_QUERYSTRING
+    redirect: X-Vouch-Requested-URI   # VOUCH_HEADERS_REDIRECT
+    claims:
+      - aud
+      - email
+      - family_name
+      - given_name
+      - iss
+      - name
+      - oidc
+      - sub
+      - token_id
+
+oauth:
+  # Generic OpenID Connect
+  # including okta
+  provider: oidc
+  client_id: CILOGON_CLIENT_ID
+  client_secret: CILOGON_CLIENT_SECRET
+  auth_url: https://cilogon.org/authorize
+  token_url: https://cilogon.org/oauth2/token
+  user_info_url: https://cilogon.org/oauth2/userinfo
+  scopes:
+    - openid
+    - email
+    - profile
+  callback_url: http://127.0.0.1:9090/auth

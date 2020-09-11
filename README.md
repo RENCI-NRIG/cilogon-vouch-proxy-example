@@ -56,7 +56,8 @@ CILogon supports a variety of scopes. This example makes use of the following:
 **Client Registration** 
 
 - To get started, register your client at [https://cilogon.org/oauth2/register](https://cilogon.org/oauth2/register) and wait for notice of approval. Please register your callback URLs on that page with care. They are the only callback URLs that may be used by your client unless you later contact help@cilogon.org and request a change to your registration.
-- Upon completion the user will be issued a `CILOGON_CLIENT_ID` and `CILOGON_CLIENT_SECRET` to be used in the `vouch/config` file.
+- Upon completion the user will be issued a `CILOGON_CLIENT_ID` and `CILOGON_CLIENT_SECRET`.
+- Copy the `vouch/config_template` as `vouch/config` and update that file with the `CILOGON_CLIENT_ID` and `CILOGON_CLIENT_SECRET` information as provided by CILogon.
 
 ```yaml
 ...
@@ -64,8 +65,8 @@ oauth:
   # Generic OpenID Connect
   # including okta
   provider: oidc
-  client_id: CILOGON_CLIENT_ID
-  client_secret: CILOGON_CLIENT_SECRET
+  client_id: CILOGON_CLIENT_ID           # <-- replace with your client id
+  client_secret: CILOGON_CLIENT_SECRET   # <-- replace with your client secret
   auth_url: https://cilogon.org/authorize
   token_url: https://cilogon.org/oauth2/token
   user_info_url: https://cilogon.org/oauth2/userinfo
