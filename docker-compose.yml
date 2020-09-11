@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  nginx:
+    image: library/nginx:1
+    container_name: ex-nginx
+    depends_on:
+      - app
+    ports:
+      - 8080:80
+      - 8443:443
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/ssl
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: ex-app
+    depends_on:
+      - vouch-proxy
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+
+  vouch-proxy:
+    container_name: ex-vouch
+    image: voucher/vouch-proxy
+    ports:
+      - 9090:9090
+    volumes:
+      - ./vouch:/config
+      - ./data:/data
+    restart: unless-stopped
