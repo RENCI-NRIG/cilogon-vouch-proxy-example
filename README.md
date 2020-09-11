@@ -1,15 +1,23 @@
 # CILogon / Vouch-Proxy Example
 
-This example is comprised of a simple Flask based application fronted by Nginx with two viable ports which both direct the user to the same URL endpoint.
+This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for gaining access to a generic web application.
+
+
+![](images/cilogon-vouch-proxy.jpg)
+
+
+This project is comprised of a simple Python-Flask based application using Nginx as the web server to steer traffic to single URL endpoint demonstrating differing behavior depending on the port being used for access.
 
 - **8080**: non-authenticated traffic over http
 - **8443**: authenticated traffic over https
 
-The traffic going over port 8443 is first validated for authentication using Vouch-Proxy, and if validation fails the user is redirected to CILogon to authenticate before being sent back to the Flask application.
+Traffic going over port 8080 isn't checked for authentication and is simply allowed to pass onto the Application.
 
-The Flask application displays the header information found in the user's request object. For non-authenticated traffic this is pretty vanilla. For authenticated traffic a number of CILogon attributes (or Claims) have been embedded in the header and displayed back to the user.
+Traffic going over port 8443 is first validated for authentication using Vouch-Proxy, and if validation fails the user is redirected to CILogon to authenticate before being sent back to the Flask application. Traffic on this port will be augmented with a number of header entries prior to being sent to the Application.
 
-This example also demonstrates how to use the included Cookie to make authenticated `curl` calls against the Flask application.
+The Flask application displays the header information found in the user's request object. For non-authenticated traffic this is pretty vanilla, for authenticated traffic a number of CILogon attributes (or Claims) have been embedded in the header and displayed back to the user.
+
+This example also demonstrates how to use the generated "Cookie" to make authenticated `curl` calls against the same Flask application.
 
 **NOTES**: 
 
@@ -17,8 +25,6 @@ This example also demonstrates how to use the included Cookie to make authentica
 - The Flask application is using the default development server (on port 5000) which is sufficient for this demonstration, but should not be used in production.
 
 ## About
-
-This example is designed to show how to use Vouch-Proxy (along side of Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc).
 
 CILogon enables researchers to log on to cyberinfrastructure (CI). CILogon provides an integrated open source identity and access management platform for research collaborations, combining federated identity management (Shibboleth, InCommon) with collaborative organization management (COmanage). Federated identity management enables researchers to use their home organization identities to access research applications, rather than requiring yet another username and password to log on.
 
