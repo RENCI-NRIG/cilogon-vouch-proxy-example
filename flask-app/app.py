@@ -11,12 +11,7 @@ def show_headers():
     response = """
 <!DOCTYPE html>
 <body>
-<p><b>USAGE:</b><br><br>
-HTTP: <a href="http://127.0.0.1:8080/" target="_blank" rel="noopener noreferrer">http://127.0.0.1:8080/</a><br>
-HTTPS: <a href="https://127.0.0.1:8443/" target="_blank" rel="noopener noreferrer">https://127.0.0.1:8443/</a><br>
-CURL: curl --insecure --cookie $COOKIE https://127.0.0.1:8443 
-(where $COOKIE is a local variable created from the "Cookie" attribute)<br>
-</p>
+<h2>Header Information</h2>
 <table style="width:100%" border=1 bordercolor=black>
 <tr>
 <th>Index</th>

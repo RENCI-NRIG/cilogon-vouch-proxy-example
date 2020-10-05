@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#000000"/>
+    <meta
+            name="description"
+            content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png"/>
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json"/>
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+    <script type="application/javascript">
+        function getHeaders() {
+            let req = new XMLHttpRequest();
+            req.open('GET', document.location, false);
+            req.send(null);
+
+            // associate array to store all values
+            let data = {};
+
+            // get all headers in one call and parse each item
+            let headers = req.getAllResponseHeaders().toLowerCase();
+            let aHeaders = headers.split('\n');
+            let i = 0;
+            for (i = 0; i < aHeaders.length; i++) {
+                let thisItem = aHeaders[i];
+                let key = thisItem.substring(0, thisItem.indexOf(':'));
+                data[key] = thisItem.substring(thisItem.indexOf(':') + 1);
+            }
+
+            // get referer
+            data["Referer"] = document.referrer;
+
+            //get useragent
+            data["UserAgent"] = navigator.userAgent;
+
+            //extra code to display the values in html
+            let display = "";
+            for (let key in data) {
+                if (key !== "")
+                    display += "<b>" + key + "</b> : " + data[key] + "<br>";
+            }
+            document.getElementById("get-headers").innerHTML = display;
+        }
+    </script>
+</head>
+<body onload="getHeaders()">
+<h2>Header Information</h2>
+<div id="get-headers">header data goes here</div>
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="root"></div>
+<!--
+  This HTML file is a template.
+  If you open it directly in the browser, you will see an empty page.
+
+  You can add webfonts, meta tags, or analytics to this file.
+  The build step will place the bundled scripts into the <body> tag.
+
+  To begin the development, run `npm start` or `yarn start`.
+  To create a production bundle, use `npm run build` or `yarn build`.
+-->
+</body>
+</html>

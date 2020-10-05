@@ -6,18 +6,17 @@ This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to e
 ![](images/cilogon-vouch-proxy.jpg)
 
 
-This project is comprised of a simple Python-Flask based application using Nginx as the web server to steer traffic to single URL endpoint demonstrating differing behavior depending on the port being used for access.
+This project is comprised of two simple applications (Python-Flask and React) using Nginx as the reverse proxy web server to steer traffic using a single URL endpoint, and demonstrating differing behavior depending on the port being used for access.
 
-- **8080**: non-authenticated traffic over http
-- **8443**: authenticated traffic over https
+- **8080**: (insecure) non-authenticated traffic over http
+- **8443**: (secure) authenticated traffic over https
 
 Traffic going over port 8080 isn't checked for authentication and is simply allowed to pass onto the Application.
 
-Traffic going over port 8443 is first validated for authentication using Vouch-Proxy, and if validation fails the user is redirected to CILogon to authenticate before being sent back to the Flask application. Traffic on this port will be augmented with a number of header entries prior to being sent to the Application.
+Traffic going over port 8443 is first validated for authentication using Vouch-Proxy, and if validation fails the user is redirected to CILogon to authenticate before being sent back to the chosen application. Traffic on this port will be augmented with a number of header entries prior to being sent to the Application.
 
-The Flask application displays the header information found in the user's request object. For non-authenticated traffic this is pretty vanilla, for authenticated traffic a number of CILogon attributes (or Claims) have been embedded in the header and displayed back to the user.
-
-This example also demonstrates how to use the generated "Cookie" to make authenticated `curl` calls against the same Flask application.
+- Both application display the header information found in the user's request object. For non-authenticated traffic this is pretty vanilla, for authenticated traffic a number of CILogon attributes (or Claims) have been embedded in the header and displayed back to the user.
+- The Flask application also demonstrates how to use the generated "Cookie" to make ReSTful authenticated `curl` calls against the Flask application.
 
 **NOTES**: 
 
@@ -48,6 +47,11 @@ CILogon supports a variety of scopes. This example makes use of the following:
         - **given_name** - first name, e.g., "`John`"
         - **family_name** - last name, e.g.,  "`Smith`"
         - **name** - display/full name, e.g., "`John A Smith`"
+
+- **tokens**: optional
+    - **id_token** - e.g., "`eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJpZHBfbmFtZSI6IlVuaXZlcnNpdHiOjE0NTQ0NDkxNDEsImF1dGhfdGltZSI6IjE0NTQ0NDkxMTEifQ`"
+    - **access_token** - e.g., "`https://cilogon.org/oauth2/accessToken/4871b3cb13982468b4e41f940ffd5d2c1/1451657451704`" 
+    - **refresh_token** - e.g., "`https://cilogon.org/oauth2/refreshToken/cc0c63b095269293623bc2a9b18074b/1454449141041`"
 
 ## Usage
 
@@ -161,5 +165,6 @@ $ curl --insecure --cookie $COOKIE --silent https://127.0.0.1:8443 | jq .
 - Vouch Proxy: [https://github.com/vouch/vouch-proxy](https://github.com/vouch/vouch-proxy)
 - Nginx: [https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)
 - Flask’s documentation: [https://flask.palletsprojects.com/en/1.1.x/](https://flask.palletsprojects.com/en/1.1.x/)
+- React's documentation: [https://reactjs.org/docs/getting-started.html](https://reactjs.org/docs/getting-started.html)
 - CILogon: [https://www.cilogon.org](https://www.cilogon.org)
 

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 90%;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>CILogon / Vouch-Proxy Example</h1>
+<p>Choose from the examples below: </p>
+<hr>
+<p>
+    <b>Flask</b> (insecure) - <a href="http://127.0.0.1:8080/app/flask">http://127.0.0.1:8080/app/flask</a><br/>
+    <b>Flask</b> (secure) - <a href="https://127.0.0.1:8443/app/flask">https://127.0.0.1:8443/app/flask</a><br/>
+    <b>Flask</b> (curl) - set local variable <code>COOKIE</code> equal to the "Cookie" attribute from Flask (secure) above<br/>
+    <code><pre style="color: #9C1A1C">$ curl --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask</pre></code>
+</p>
+<hr>
+<p>
+    <b>React</b> (insecure) - <a href="http://127.0.0.1:8080/app/react">http://127.0.0.1:8080/app/react</a><br/>
+    <b>React</b> (secure) - <a href="https://127.0.0.1:8443/app/react">https://127.0.0.1:8443/app/react</a><br/>
+</p>
+<hr>
+</body>
+</html>
