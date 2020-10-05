@@ -9,6 +9,10 @@ __pycache__/
 instance/
 .webassets-cache
 
+# React stuff:
+react-app/node_modules
+react-app/build
+
 # Environments
 .env
 .venv

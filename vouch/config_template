@@ -2,6 +2,7 @@
 # bare minimum to get vouch running with OpenID Connect (such as okta)
 
 vouch:
+  logLevel: debug
   # domains:
   # valid domains that the jwt cookies can be set into
   # the callback_urls will be to these domains
@@ -14,6 +15,17 @@ vouch:
   # set allowAllUsers: true to use Vouch Proxy to just accept anyone who can authenticate at the configured provider
   # and set vouch.cookie.domain to the domain you wish to protect
   allowAllUsers: true
+
+  jwt:
+    # secret - VOUCH_JWT_SECRET
+    # a random string used to cryptographically sign the jwt
+    # Vouch Proxy complains if the string is less than 44 characters (256 bits as 32 base64 bytes)
+    # if the secret is not set here then Vouch Proxy will..
+    # - look for the secret in `./config/secret`
+    # - if `./config/secret` doesn't exist then randomly generate a secret and store it there
+    # in order to run multiple instances of vouch on multiple servers (perhaps purely for validating the jwt),
+    # you'll want them all to have the same secret
+    secret: kmDDgMLGThapDV1QnhWPJd0oARzjLa5Zy3bQ8WfOIYk=
 
   cookie:
     # allow the jwt/cookie to be set into http://yourdomain.com (defaults to true, requiring https://yourdomain.com)
@@ -36,6 +48,9 @@ vouch:
       - oidc
       - sub
       - token_id
+    idtoken: X-Vouch-IdP-IdToken
+    accesstoken: X-Vouch-IdP-AccessToken
+    refreshtoken: X-Vouch-IdP-RefreshToken
 
 oauth:
   # Generic OpenID Connect
