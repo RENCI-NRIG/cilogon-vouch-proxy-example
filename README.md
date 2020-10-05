@@ -1,10 +1,14 @@
 # CILogon / Vouch-Proxy Example
 
-This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for gaining access to a generic web application.
+**WORK IN PROGRESS**
 
+- TODO: properly capture headers set by Nginx headers with React
+
+---
+
+This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for gaining access to generic web applications.
 
 ![](images/cilogon-vouch-proxy.jpg)
-
 
 This project is comprised of two simple applications (Python-Flask and React) using Nginx as the reverse proxy web server to steer traffic using a single URL endpoint, and demonstrating differing behavior depending on the port being used for access.
 
@@ -31,7 +35,7 @@ Vouch Proxy is an SSO solution for Nginx using the [auth_request](http://nginx.o
 
 ### CILogon scopes
 
-CILogon supports a variety of scopes. This example makes use of the following:
+CILogon supports a variety of scopes. This example makes use of the following scopes along with the available claims at each scope:
 
 - **openid**: required
     - resulting claims: 
@@ -47,6 +51,10 @@ CILogon supports a variety of scopes. This example makes use of the following:
         - **given_name** - first name, e.g., "`John`"
         - **family_name** - last name, e.g.,  "`Smith`"
         - **name** - display/full name, e.g., "`John A Smith`"
+
+### Additional supported items
+
+In addition to the claims listed above, the following tokens can also be requested during authentication (NOTE: `refresh_token` is only available by request per OIDC Client, and can only be enabled by CILogon staff)
 
 - **tokens**: optional
     - **id_token** - e.g., "`eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJpZHBfbmFtZSI6IlVuaXZlcnNpdHiOjE0NTQ0NDkxNDEsImF1dGhfdGltZSI6IjE0NTQ0NDkxMTEifQ`"
@@ -91,63 +99,93 @@ A `docker-compose.yml` file has been included to make running everything on your
 
 ```console
 $ docker-compose pull
-Pulling vouch-proxy ... done
-Pulling app         ... done
 Pulling nginx       ... done
+Pulling flask-app   ... done
+Pulling react-app   ... done
+Pulling vouch-proxy ... done
+
 $ docker-compose build
-vouch-proxy uses an image, skipping
 nginx uses an image, skipping
-Building app
-Step 1/9 : FROM python:3
+vouch-proxy uses an image, skipping
+Building flask-app
 ...
-Successfully built 9c7c5a5e3e07
-Successfully tagged cilogon-vouch-proxy-example_app:latest
+Successfully built bb26e933b5d8
+Successfully tagged cilogon-vouch-proxy-example_flask-app:latest
+Building react-app
+...
+Successfully built 6d69d5751de4
+Successfully tagged cilogon-vouch-proxy-example_react-app:latest
+
 $ docker-compose up -d
 Creating network "cilogon-vouch-proxy-example_default" with the default driver
-Creating ex-vouch ... done
-Creating ex-app   ... done
-Creating ex-nginx ... done
+Creating ex-react-app ... done
+Creating ex-vouch     ... done
+Creating ex-flask-app ... done
+Creating ex-nginx     ... done
 ```
 
 Check to make sure all containers are running as expected
 
 ```console
 $ docker-compose ps
-  Name                Command                  State                          Ports
-------------------------------------------------------------------------------------------------------
-ex-app     /docker-entrypoint.sh run_ ...   Up             0.0.0.0:5000->5000/tcp
-ex-nginx   /docker-entrypoint.sh ngin ...   Up             0.0.0.0:8443->443/tcp, 0.0.0.0:8080->80/tcp
-ex-vouch   /vouch-proxy                     Up (healthy)   0.0.0.0:9090->9090/tcp
+    Name                  Command                  State                           Ports
+-------------------------------------------------------------------------------------------------------------
+ex-flask-app   /docker-entrypoint.sh run_ ...   Up             0.0.0.0:5000->5000/tcp
+ex-nginx       /docker-entrypoint.sh ngin ...   Up             0.0.0.0:8443->443/tcp, 0.0.0.0:8080->80/tcp
+ex-react-app   /docker-entrypoint.sh run_ ...   Up             0.0.0.0:3000->3000/tcp, 0.0.0.0:5050->5000/tcp
+ex-vouch       /vouch-proxy                     Up (healthy)   0.0.0.0:9090->9090/tcp
 ```
 
-With all containers running as expected, navigate to [http://127.0.0.1:8080/](http://127.0.0.1:8080/) and denote the basic header infomation
+### Example deployment
 
-![](images/app-http.png)
+With all containers running as expected, navigate to [http://127.0.0.1:8080/](http://127.0.0.1:8080/) to view the example options.
 
-Next, follow the link to the secure example of the same page at [https://127.0.0.1:8443/](https://127.0.0.1:8443/)
+![](images/app-index.png)
 
-You'll be asked to authenticate using CILogon
+**Flask (insecure)**: follow the link to view the basic header information.
+
+![](images/flask-insecure.png)
+
+Use the back button to return to the example options page.
+
+**Flask (secure)**: If you've previously authenticated you will pass through the vouch-proxy validation directly to the Flask page. Otherwise you'll be redirected to the CILogon Authentication page.
+
+If using the included self-signed SSL certificate you will likely be prompted to accept the risk.
+
+![](images/self-signed.png)
+
+The first time accessing one of the secure examples you will be prompted to authenticate with CILogon. Choose your identity provider from the dropdown list and proceed to authenticate.
 
 ![](images/cilogon-auth.png)
 
-And upon authentication you will be redirected to the secure version of the page.
+Once authenticated, the claims from CILogon are added to the header infromation avaialble to the Flask application.
 
-![](images/app-https.png)
+![](images/flask-secure.png)
 
-Note all of the additional header information being injected by Vouch-Proxy via Nginx.
+Use the back button to return to the example options page.
 
-The Cookie information can also be used to interact with the same page via the `curl` command
+**Flask (curl)**: Using the Vouch-Proxy Cookie, perform an authenticated ReSTful curl call.
+
+In your terminal, set a local variable named `COOKIE` from the contents of the **Cookie** attribute in the returned header information.
 
 ```console
-$ COOKIE='cilogon-example=H4sIAAAAAAAA_2yQ0XKjIBiFn2g7EWNXL9sYlVRxTRSEO4G0omicptHI0--wu-3e9I7hn_PNd855PbQ8FipXB1gZ6CAFr3A8emIHH2E_1Xh3CB7O68ERAK98iD7YCT7CEW0Yia6s1k-SeF064F6ebBBNMsYGdhOvT4sqXGxkHHwU4N42xLH_P-EQOczCBzTxOBg52D6mAF0bgm8yCia287csLjxqdE-HqKdGuLQ8DixkioXtwMpqk8XVmpcQQLUoRpy2IYstYGSMWx5jr0jwja6eZkml0t1hoMSZeKJfv_z1p39v72NTM811cKPE0bC7qJLorokjzXfwCgdtxGp9241Mnk2u_JkCfeVAzlx5sxiEZXyTfS4_fayncLGy9yY5bkR4mVPw1f_G3cOYukiLkWnR72dZ23c2Z12xZuXb3eZlHLwz4r02pLBdLzI5LsJ8wwFBK-vjJVPBxKLj3AB8Sw10GaEmA9nCujeHmlZRkrkUoDYzcIO6YkXlm8nCDKRm7-Rl7-YhdFHYGxRC9XpaVLWPOgqwEc5fpu1ivaq97vEft63KFbRb6HPypPLuH6cUdxT2_3fUbJYEXeC4edjmzH0vXpI6iv2Xc3rLiK-0b3481b-Ub_yLrorzycd5g5bfAQAA___EqD0TqAIAAA=='
+$ COOKIE='cilogon-example=H4sIAAAAAAAA_3SVzZKjOBaFn2g...3zfT23wAAAP__H1iKmhAIAAA='
+```
 
-$ curl --insecure --cookie $COOKIE --silent https://127.0.0.1:8443 | jq .
+Next, curl the secure Flask server and view the returned results (`jq` used to better display the results).
+
+```console
+$ curl --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask | jq .
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  3621  100  3621    0     0  71000      0 --:--:-- --:--:-- --:--:-- 71000
 {
   "Accept": "*/*",
   "Connection": "close",
-  "Cookie": "cilogon-example=H4sIAAAAAAAA_2yQ0XKjIBiFn2g7EWNXL9sYlVRxTRSEO4G0omicptHI0--wu-3e9I7hn_PNd855PbQ8FipXB1gZ6CAFr3A8emIHH2E_1Xh3CB7O68ERAK98iD7YCT7CEW0Yia6s1k-SeF064F6ebBBNMsYGdhOvT4sqXGxkHHwU4N42xLH_P-EQOczCBzTxOBg52D6mAF0bgm8yCia287csLjxqdE-HqKdGuLQ8DixkioXtwMpqk8XVmpcQQLUoRpy2IYstYGSMWx5jr0jwja6eZkml0t1hoMSZeKJfv_z1p39v72NTM811cKPE0bC7qJLorokjzXfwCgdtxGp9241Mnk2u_JkCfeVAzlx5sxiEZXyTfS4_fayncLGy9yY5bkR4mVPw1f_G3cOYukiLkWnR72dZ23c2Z12xZuXb3eZlHLwz4r02pLBdLzI5LsJ8wwFBK-vjJVPBxKLj3AB8Sw10GaEmA9nCujeHmlZRkrkUoDYzcIO6YkXlm8nCDKRm7-Rl7-YhdFHYGxRC9XpaVLWPOgqwEc5fpu1ivaq97vEft63KFbRb6HPypPLuH6cUdxT2_3fUbJYEXeC4edjmzH0vXpI6iv2Xc3rLiK-0b3481b-Ub_yLrorzycd5g5bfAQAA___EqD0TqAIAAA==",
-  "Host": "app:5000",
+  "Cookie": "cilogon-example=H4sIAAAAAAAA_3SVzZKjOBaFn2g...3zfT23wAAAP__H1iKmhAIAAA=",
+  "Host": "127.0.0.1",
   "User-Agent": "curl/7.64.1",
+  "X-Vouch-Idp-Accesstoken": "https://cilogon.org/oauth2/accessToken/691c2c7236c996eb91dd7e0959885f9d/1601937818734",
   "X-Vouch-Idp-Claims-Aud": "cilogon:/client_id/8dd9c9dbadc77a4fd6bd8fe540e2926",
   "X-Vouch-Idp-Claims-Email": "stealey@unc.edu",
   "X-Vouch-Idp-Claims-Family-Name": "Stealey",
@@ -155,10 +193,29 @@ $ curl --insecure --cookie $COOKIE --silent https://127.0.0.1:8443 | jq .
   "X-Vouch-Idp-Claims-Iss": "https://cilogon.org",
   "X-Vouch-Idp-Claims-Name": "Michael Stealey",
   "X-Vouch-Idp-Claims-Sub": "http://cilogon.org/serverA/users/242181",
-  "X-Vouch-Idp-Claims-Token-Id": "https://cilogon.org/oauth2/idToken/27ef33c0f85c8bac7cca324642583036/1599782749342",
+  "X-Vouch-Idp-Claims-Token-Id": "https://cilogon.org/oauth2/idToken/36a9ebcefbe619a6843a16970b95fcf7/1601937818532",
+  "X-Vouch-Idp-Idtoken": "eyJ0eXAiOiJKV1QiLCJraWQiOi...ei9TGxefalCZX76N4v7ekyMW-OGA",
   "X-Vouch-User": "stealey@unc.edu"
 }
 ```
+
+The contents of the `X-Vouch-Idp-Idtoken` is the identity JWT as returned by CILogon, and can be viewed using [https://jwt.io/](https://jwt.io/)
+
+![](images/curl-jwt.png)
+
+**React (insecure)**: follow the link to view the basic header information.
+
+![](images/react-insecure.png) 
+
+- **NOTE**: the header information being shown in the React section is not accurate at this time and is being investigated.
+
+Use the back button to return to the example options page.
+
+**React (secure)**: If you've previously authenticated you will pass through the vouch-proxy validation directly to the React page. Otherwise you'll be redirected to the CILogon Authentication page.
+
+![](images/react-secure.png)
+
+- **NOTE**: the header information being shown in the React section is not accurate at this time and is being investigated.
 
 ## References
 
