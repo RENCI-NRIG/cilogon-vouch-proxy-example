@@ -2,7 +2,7 @@
 
 **WORK IN PROGRESS**
 
-- TODO: properly capture headers set by Nginx headers with React
+- TODO: properly capture headers set by Nginx with React
 
 ---
 
