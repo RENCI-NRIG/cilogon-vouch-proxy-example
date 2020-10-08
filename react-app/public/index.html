@@ -26,14 +26,24 @@
     -->
     <title>React App</title>
     <script type="application/javascript">
-        function getHeaders() {
+        function getHeaders(callback) {
             let req = new XMLHttpRequest();
-            req.open('GET', document.location, false);
+            req.onreadystatechange = function () {
+                if (req.readyState === XMLHttpRequest.DONE) {
+                    //
+                    // The following headers may often be similar
+                    // to those of the original page request...
+                    //
+                    if (callback && typeof callback === 'function') {
+                        callback(req.getAllResponseHeaders());
+                    }
+                }
+            };
+            req.open('HEAD', document.location, false);
             req.send(null);
 
             // associate array to store all values
             let data = {};
-
             // get all headers in one call and parse each item
             let headers = req.getAllResponseHeaders().toLowerCase();
             let aHeaders = headers.split('\n');

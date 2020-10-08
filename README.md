@@ -1,11 +1,5 @@
 # CILogon / Vouch-Proxy Example
 
-**WORK IN PROGRESS**
-
-- TODO: properly capture headers set by Nginx with React
-
----
-
 This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for gaining access to generic web applications.
 
 ![](images/cilogon-vouch-proxy.jpg)
@@ -207,15 +201,11 @@ The contents of the `X-Vouch-Idp-Idtoken` is the identity JWT as returned by CIL
 
 ![](images/react-insecure.png) 
 
-- **NOTE**: the header information being shown in the React section is not accurate at this time and is being investigated.
-
 Use the back button to return to the example options page.
 
 **React (secure)**: If you've previously authenticated you will pass through the vouch-proxy validation directly to the React page. Otherwise you'll be redirected to the CILogon Authentication page.
 
 ![](images/react-secure.png)
-
-- **NOTE**: the header information being shown in the React section is not accurate at this time and is being investigated.
 
 ## References
 
