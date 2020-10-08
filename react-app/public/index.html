@@ -45,7 +45,7 @@
             // associate array to store all values
             let data = {};
             // get all headers in one call and parse each item
-            let headers = req.getAllResponseHeaders().toLowerCase();
+            let headers = req.getAllResponseHeaders();
             let aHeaders = headers.split('\n');
             let i = 0;
             for (i = 0; i < aHeaders.length; i++) {
