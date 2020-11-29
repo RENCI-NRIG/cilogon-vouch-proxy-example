@@ -3,9 +3,6 @@ services:
   nginx:
     image: library/nginx:1
     container_name: ex-nginx
-#    depends_on:
-#      - flask-app
-#      - react-app
     ports:
       - 8080:80
       - 8443:443
@@ -21,10 +18,8 @@ services:
       context: ./flask-app
       dockerfile: Dockerfile
     container_name: ex-flask-app
-#    depends_on:
-#      - vouch-proxy
-    ports:
-      - 5000:5000
+#    ports:
+#      - 5000:5000
     restart: unless-stopped
 
   react-app:
@@ -32,20 +27,17 @@ services:
       context: ./react-app
       dockerfile: Dockerfile
     container_name: ex-react-app
-#    depends_on:
-#      - vouch-proxy
-    ports:
-      - 5050:5000
-      - 3000:3000
+#    ports:
+#      - 5050:5000
+#      - 3000:3000
     stdin_open: true
     restart: unless-stopped
 
   vouch-proxy:
     container_name: ex-vouch
     image: voucher/vouch-proxy
-    ports:
-      - 9090:9090
+#    ports:
+#      - 9090:9090
     volumes:
       - ./vouch:/config
-      - ./data:/data
     restart: unless-stopped

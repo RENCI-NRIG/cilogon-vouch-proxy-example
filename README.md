@@ -1,31 +1,27 @@
 # CILogon / Vouch-Proxy Example
 
-This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for gaining access to generic web applications.
+This example is designed to demonstrate how to use Vouch-Proxy (with Nginx) to enable authentication using [CILogon's OpenID Connect (OIDC) service](https://www.cilogon.org/oidc) for establishing authenticated access to generic web applications.
 
 ![](images/cilogon-vouch-proxy.jpg)
 
-This project is comprised of two simple applications (Python-Flask and React) using Nginx as the reverse proxy web server to steer traffic using a single URL endpoint, and demonstrating differing behavior depending on the port being used for access.
+## Table of Contents
 
-- **8080**: (insecure) non-authenticated traffic over http
-- **8443**: (secure) authenticated traffic over https
+- [About](#about) CILogon and Vouch-Proxy
+- [Usage](#usage)
+    - [Configure](#config) the example code
+    - [Run](#run) the example code
+- [Navigating the UI](#ui)
+    - [Flask app](#flask)
+    - [React app](#react)
+    - [cURL](#curl)
+- [Notes](#notes) regarding configuration for regular domains
+- [References](#ref)
 
-Traffic going over port 8080 isn't checked for authentication and is simply allowed to pass onto the Application.
-
-Traffic going over port 8443 is first validated for authentication using Vouch-Proxy, and if validation fails the user is redirected to CILogon to authenticate before being sent back to the chosen application. Traffic on this port will be augmented with a number of header entries prior to being sent to the Application.
-
-- Both application display the header information found in the user's request object. For non-authenticated traffic this is pretty vanilla, for authenticated traffic a number of CILogon attributes (or Claims) have been embedded in the header and displayed back to the user.
-- The Flask application also demonstrates how to use the generated "Cookie" to make ReSTful authenticated `curl` calls against the Flask application.
-
-**NOTES**: 
-
-- A self-signed SSL certificate has been included for demonstration purposes and should not be used in any kind of production environment.
-- The Flask application is using the default development server (on port 5000) which is sufficient for this demonstration, but should not be used in production.
-
-## About
+## <a name="about"></a>About CILogon and Vouch-Proxy
 
 CILogon enables researchers to log on to cyberinfrastructure (CI). CILogon provides an integrated open source identity and access management platform for research collaborations, combining federated identity management (Shibboleth, InCommon) with collaborative organization management (COmanage). Federated identity management enables researchers to use their home organization identities to access research applications, rather than requiring yet another username and password to log on.
 
-Vouch Proxy is an SSO solution for Nginx using the [auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html) module that relies on the ability to share a cookie between the Vouch Proxy server and the application it's protecting.
+Vouch Proxy is an SSO solution for Nginx using the [auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html) module that relies on the ability to share a cookie between the Vouch Proxy server and the application its protecting.
 
 ### CILogon scopes
 
@@ -55,9 +51,11 @@ In addition to the claims listed above, the following tokens can also be request
     - **access_token** - e.g., "`https://cilogon.org/oauth2/accessToken/4871b3cb13982468b4e41f940ffd5d2c1/1451657451704`" 
     - **refresh_token** - e.g., "`https://cilogon.org/oauth2/refreshToken/cc0c63b095269293623bc2a9b18074b/1454449141041`"
 
-## Usage
+## <a name="usage"></a>Usage
 
-### Configuration
+Since this is an example it will be running at [https://127.0.0.1:8443]() which is a **localhost** address and not something you'd generally register an OIDC client for. But for sake of this example we are registering it as such.
+
+### <a name="config"></a>Configure the example code
 
 **Client Registration** 
 
@@ -80,14 +78,18 @@ oauth:
     - openid
     - email
     - profile
-  callback_url: http://127.0.0.1:9090/auth
+  callback_url: http://127.0.0.1:8443/auth
 ```
 
-For this example a client was created using the COmanage registry.
+For this example a client was created using the COmanage registry directly. Ensure the **Callback URL** and **Scopes** match the `vouch/config` configuration file. Mismatches in definition between the OIDC Client, Vouch configuration or Nginx server definitions can cause failures to occur.
 
 ![](images/cilogon-oidc.png)
 
-### Running
+Upon registration a **Client ID** and **Client Secret** will be given to the user.
+
+![](images/cilogon-client-info.png)
+
+### <a name="run"></a>Run the example code
 
 A `docker-compose.yml` file has been included to make running everything on your localhost simple. If you plan to deploy on a machine with a proper domain, you'll need to adjust the configuration files accordingly.
 
@@ -122,92 +124,176 @@ Check to make sure all containers are running as expected
 
 ```console
 $ docker-compose ps
-    Name                  Command                  State                           Ports
--------------------------------------------------------------------------------------------------------------
-ex-flask-app   /docker-entrypoint.sh run_ ...   Up             0.0.0.0:5000->5000/tcp
+    Name                  Command                  State                          Ports
+----------------------------------------------------------------------------------------------------------
+ex-flask-app   /docker-entrypoint.sh run_ ...   Up             5000/tcp
 ex-nginx       /docker-entrypoint.sh ngin ...   Up             0.0.0.0:8443->443/tcp, 0.0.0.0:8080->80/tcp
-ex-react-app   /docker-entrypoint.sh run_ ...   Up             0.0.0.0:3000->3000/tcp, 0.0.0.0:5050->5000/tcp
-ex-vouch       /vouch-proxy                     Up (healthy)   0.0.0.0:9090->9090/tcp
+ex-react-app   /docker-entrypoint.sh run_ ...   Up             3000/tcp, 5000/tcp
+ex-vouch       /vouch-proxy                     Up (healthy)   9090/tcp
 ```
 
-### Example deployment
+Notice that by default only ports 8080 and 8443 are exposed to the outside world. All other container-to-container interaction takes place within the private docker subnet named `cilogon-vouch-proxy-example_default`. If you wish to expose the other container ports to the external host network, simply uncomment the port definitions in the **docker-compose.yml** file.
 
-With all containers running as expected, navigate to [http://127.0.0.1:8080/](http://127.0.0.1:8080/) to view the example options.
+## <a name="ui"></a>Navigating the UI
 
-![](images/app-index.png)
+Navigate your browser to [https://127.0.0.1:8080](), Nginx is configured to automatically redirect your browser to the secure version running at [https://127.0.0.1:8443]()
 
-**Flask (insecure)**: follow the link to view the basic header information.
+Since the example is using self-signed certificates most browsers will warn you prior to allowing you to view the site. Accept and proceed to the site.
 
-![](images/flask-insecure.png)
+![](images/ui-self-signed.png)
 
-Use the back button to return to the example options page.
+Once the self-signed certificates have been accepted you will see the main page which defines three possible examples to interact with. The main index.html page is served directly from the `ex-nginx` container.
 
-**Flask (secure)**: If you've previously authenticated you will pass through the vouch-proxy validation directly to the Flask page. Otherwise you'll be redirected to the CILogon Authentication page.
+- Flask app
+- React app
+- cURL interaction
 
-If using the included self-signed SSL certificate you will likely be prompted to accept the risk.
+![](images/ui-index.png)
 
-![](images/self-signed.png)
+## <a name="flask"></a>Flask app
 
-The first time accessing one of the secure examples you will be prompted to authenticate with CILogon. Choose your identity provider from the dropdown list and proceed to authenticate.
+Choosing the Flask app will redirect your browser to the container running the Flask application at slug `/app/flask`. Behind the scenes Nginx is now proxying your web traffic to port 5000 of the `ex-flask-app` container.
 
-![](images/cilogon-auth.png)
+By default you are not authenticated, and should see the request headers associated with non-authenticated traffic.
 
-Once authenticated, the claims from CILogon are added to the header infromation avaialble to the Flask application.
+![](images/flask-non-auth.png)
 
-![](images/flask-secure.png)
+Clicking the **Login** button will redirect you from the `ex-flask-app` container to the `ex-vouch` container's **login** endpoint. This is where the CILogon OIDC client settings are detected which then redirect you to the OIDC client at [cilogon.org]()
 
-Use the back button to return to the example options page.
+![](images/ui-choose-idp.png)
 
-**Flask (curl)**: Using the Vouch-Proxy Cookie, perform an authenticated ReSTful curl call.
+Choose your identity provider from the dropdown list. In this example I've chosen to use UNC Chapel Hill as my identity provider.
 
-In your terminal, set a local variable named `COOKIE` from the contents of the **Cookie** attribute in the returned header information.
+![](images/ui-authenticate.png)
+
+Upon successful authentication the user is redirected back to the `/app/flask` slug, but this time the headers are set with the authentication information (OIDC Claims) as returned by CILogon.
+
+![](images/flask-with-auth.png)
+
+Choosing the [Homepage]() link at the bottom left will send the user back to the main index.html page.
+
+## <a name="react"></a>React app
+
+Choosing the React app will redirect your browser to the container running the React application at slug `/app/react`. Behind the scenes Nginx is now proxying your web traffic to port 5000 of the `ex-react-app` container.
+
+By default you are not authenticated, and should see the request headers associated with non-authenticated traffic.
+
+![](images/react-non-auth.png)
+
+Clicking the **Login** button will redirect you from the `ex-react-app` container to the `ex-vouch` container's **login** endpoint. This is where the CILogon OIDC client settings are detected which then redirect you to the OIDC client at [cilogon.org]()
+
+![](images/ui-choose-idp.png)
+
+Choose your identity provider from the dropdown list. In this example I've chosen to use UNC Chapel Hill as my identity provider.
+
+![](images/ui-authenticate.png)
+
+Upon successful authentication the user is redirected back to the `/app/react` slug, but this time the headers are set with the authentication information (OIDC Claims) as returned by CILogon.
+
+![](images/react-with-auth.png)
+
+Choosing the [Homepage]() link at the bottom left will send the user back to the main index.html page.
+
+## <a name="curl"></a>cURL
+
+You should have noticed a Cookie being set after you've logged in using one of the above examples. Copy the Cookie to your clipboard before continuing to the next steps.
+
+Export your Cookie:
 
 ```console
-$ COOKIE='cilogon-example=H4sIAAAAAAAA_3SVzZKjOBaFn2g...3zfT23wAAAP__H1iKmhAIAAA='
+$ export COOKIE='cilogon-example=H4sIAAAAAAAA_...__i8No1BEIAAA='
 ```
 
-Next, curl the secure Flask server and view the returned results (`jq` used to better display the results).
+Make a non-authenticated curl call (no cookie):
 
 ```console
-$ curl --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask | jq .
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  3621  100  3621    0     0  71000      0 --:--:-- --:--:-- --:--:-- 71000
+$ curl -s --insecure https://127.0.0.1:8443/app/flask | jq .
 {
   "Accept": "*/*",
   "Connection": "close",
-  "Cookie": "cilogon-example=H4sIAAAAAAAA_3SVzZKjOBaFn2g...3zfT23wAAAP__H1iKmhAIAAA=",
+  "Host": "127.0.0.1",
+  "User-Agent": "curl/7.64.1"
+}
+```
+
+Make an authenticated curl call (use cookie):
+
+```console
+$ curl -s --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask | jq .
+{
+  "Accept": "*/*",
+  "Connection": "close",
+  "Cookie": "cilogon-example=H4sIAAAAAAAA_...__i8No1BEIAAA=",
   "Host": "127.0.0.1",
   "User-Agent": "curl/7.64.1",
-  "X-Vouch-Idp-Accesstoken": "https://cilogon.org/oauth2/accessToken/691c2c7236c996eb91dd7e0959885f9d/1601937818734",
-  "X-Vouch-Idp-Claims-Aud": "cilogon:/client_id/8dd9c9dbadc77a4fd6bd8fe540e2926",
+  "X-Vouch-Idp-Accesstoken": "https://cilogon.org/oauth2/accessToken/17cbe2601088f2465e85d5354966496/1606672439132",
+  "X-Vouch-Idp-Claims-Aud": "cilogon:/client_id/53ae8a57ae2d0d46c325f648ce4d8bff",
   "X-Vouch-Idp-Claims-Email": "stealey@unc.edu",
   "X-Vouch-Idp-Claims-Family-Name": "Stealey",
   "X-Vouch-Idp-Claims-Given-Name": "Michael",
   "X-Vouch-Idp-Claims-Iss": "https://cilogon.org",
   "X-Vouch-Idp-Claims-Name": "Michael Stealey",
   "X-Vouch-Idp-Claims-Sub": "http://cilogon.org/serverA/users/242181",
-  "X-Vouch-Idp-Claims-Token-Id": "https://cilogon.org/oauth2/idToken/36a9ebcefbe619a6843a16970b95fcf7/1601937818532",
-  "X-Vouch-Idp-Idtoken": "eyJ0eXAiOiJKV1QiLCJraWQiOi...ei9TGxefalCZX76N4v7ekyMW-OGA",
+  "X-Vouch-Idp-Claims-Token-Id": "https://cilogon.org/oauth2/idToken/57996cccc190cfbffd4bcf950e1073a0/1606672438949",
+  "X-Vouch-Idp-Idtoken": "eyJ0eXAiOiJKV1QiLCJ...QQI-5Bcb1G8uYSdJkCjB47MFIZQ",
   "X-Vouch-User": "stealey@unc.edu"
 }
 ```
 
-The contents of the `X-Vouch-Idp-Idtoken` is the identity JWT as returned by CILogon, and can be viewed using [https://jwt.io/](https://jwt.io/)
+View contents of `X-Vouch-Idp-Idtoken` using [https://jwt.io/](https://jwt.io/)
 
-![](images/curl-jwt.png)
+![](images/jwt-io.png)
 
-**React (insecure)**: follow the link to view the basic header information.
+## <a name="notes"></a>Notes regarding configuration for regular domains
 
-![](images/react-insecure.png) 
+When setting up vouch-proxy / nginx in a real environment it's important to have your FQDN or IP information already known and ready to use.
 
-Use the back button to return to the example options page.
+### Define the OIDC Client
 
-**React (secure)**: If you've previously authenticated you will pass through the vouch-proxy validation directly to the React page. Otherwise you'll be redirected to the CILogon Authentication page.
+CILogon will require the following information:
 
-![](images/react-secure.png)
+- **Name**: The client Name is displayed to end-users on the Identity Provider selection page
+- **Home URL**: The Home URL is used as the hyperlink for the client Name
+- **Callbacks**: The redirect_uri parameter must exactly match a callback URL
+- **Scopes**: [Information on Scopes](https://www.cilogon.org/oidc), one or more of {`openid`, `profile`, `email`, `org.cilogon.userinfo`}
 
-## References
+### Configuration: `vouch/config`
+
+Some important configuration options to keep in mind:
+
+- **vouch.post\_logout\_redirect\_uris**: in order to prevent redirection attacks all redirected URLs to `/logout` must be specified the URL must still be passed to Vouch Proxy as [https://vouch.yourdomain.com/logout?url=${ONE OF THE URLS LISTED}]()
+- **cookie.domain**: domain the cookie is attributed to
+- **cookie.name**: name of cookie being generated
+- **oauth.client_id**: must match the `CLIENT_ID` as provided by CILogon
+- **oauth.client_secret**: must match the `CLIENT_SECRET` as provided by CILogon
+- **oauth.callback_url**: must match one of the **Callbacks** as listed in OIDC client at CILogon
+
+### Configuration: `nginx/default.conf`
+
+Nginx can be used to reverse proxy most any URL slug to most any application it has access to. It is important to properly map incoming requests to the appropriate proxied service.
+
+Nginx server blocks are evaluated in order, so ensure the flow of your `default.conf` file is organized in such a way that all of your valid URL slugs can be properly discovered.
+
+Some important configuration options to keep in mind:
+
+- **Callbacks**: the OIDC client at CILogon will expect to find an exact match for one of it's listed Callbacks when interacting with your application. It is important to proxy this correctly if using Nginx as a reverse proxy for the vouch-proxy docker container (Example below)
+
+    ```conf
+    location /auth {
+        # redirect to Vouch Proxy for authentication with OIDC client
+        proxy_pass http://vouch-proxy:9090/auth;
+    }
+    ```
+- **logout redirects**: logout redirect URLs must be present in the list specified in `vouch/config` under the **vouch.post\_logout\_redirect\_uris** section (Example below)
+
+    ```conf
+    location /logout/flask {
+        # redirect to Vouch Proxy for login
+        proxy_pass http://vouch-proxy:9090/logout?url=$scheme://$http_host/app/flask;
+    }
+    ```
+
+## <a name="ref"></a>References
 
 - Vouch Proxy: [https://github.com/vouch/vouch-proxy](https://github.com/vouch/vouch-proxy)
 - Nginx: [https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)

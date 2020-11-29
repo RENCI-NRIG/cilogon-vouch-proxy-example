@@ -1,30 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>CILogon / Vouch-Proxy</title>
-<style>
-    body {
-        width: 90%;
-        margin: 0 auto;
-        font-family: Tahoma, Verdana, Arial, sans-serif;
-    }
-</style>
+    <title>CILogon / Vouch-Proxy</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            width: 90%;
+            margin: 0 auto;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+        }
+
+        code {
+            font-family: Consolas, "courier new";
+            color: crimson;
+            background-color: #f1f1f1;
+            padding: 2px;
+            font-size: 105%;
+        }
+    </style>
 </head>
 <body>
-<h1>CILogon / Vouch-Proxy Example</h1>
-<p>Choose from the examples below: </p>
+<h1>CILogon / Vouch-Proxy</h1>
+<br>
+<div>
+    <h2>Choose from the examples below</h2>
+</div>
 <hr>
-<p>
-    <b>Flask</b> (insecure) - <a href="http://127.0.0.1:8080/app/flask">http://127.0.0.1:8080/app/flask</a><br/>
-    <b>Flask</b> (secure) - <a href="https://127.0.0.1:8443/app/flask">https://127.0.0.1:8443/app/flask</a><br/>
-    <b>Flask</b> (curl) - set local variable <code>COOKIE</code> equal to the "Cookie" attribute from Flask (secure) above<br/>
-    <code><pre style="color: #9C1A1C">$ curl --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask</pre></code>
-</p>
+<div class="container">
+    <h3>Flask app -->
+        <button type="button" class="btn btn-info" onclick="window.location.href='/app/flask'">
+            Click Here
+        </button>
+    </h3>
+</div>
 <hr>
-<p>
-    <b>React</b> (insecure) - <a href="http://127.0.0.1:8080/app/react">http://127.0.0.1:8080/app/react</a><br/>
-    <b>React</b> (secure) - <a href="https://127.0.0.1:8443/app/react">https://127.0.0.1:8443/app/react</a><br/>
-</p>
+<div class="container">
+    <h3>React app -->
+        <button type="button" class="btn btn-info" onclick="window.location.href='/app/react'">
+            Click Here
+        </button>
+    </h3>
+</div>
 <hr>
+<div class="container">
+    <h3>cURL</h3>
+    <p>
+        You should have noticed a Cookie being set after you've logged in using one of the above examples.
+        Copy the Cookie to your clipboard before continuing to the next steps.
+    </p>
+    <p>
+        - Export your Cookie:
+        <code>
+            $ export COOKIE='cilogon-example=H4sIAAAAAAAA_...__8aC4oEQCAAA'
+        </code>
+        <br>
+        - Make a non-authenticated curl call (no cookie):
+        <code>
+            $ curl --insecure https://127.0.0.1:8443/app/flask
+        </code>
+        <br>
+        - Make an authenticated curl call (use cookie):
+        <code>
+            $ curl --insecure --cookie $COOKIE https://127.0.0.1:8443/app/flask
+        </code>
+    </p>
+</div>
 </body>
 </html>

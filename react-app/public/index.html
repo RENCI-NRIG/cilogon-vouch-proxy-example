@@ -25,6 +25,74 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 5px;
+        }
+
+        th {
+            text-align: center;
+        }
+    </style>
+
+    <script type="application/javascript">
+        function getButtons(callback) {
+            let req = new XMLHttpRequest();
+            req.onreadystatechange = function () {
+                if (req.readyState === XMLHttpRequest.DONE) {
+                    //
+                    // The following headers may often be similar
+                    // to those of the original page request...
+                    //
+                    if (callback && typeof callback === 'function') {
+                        callback(req.getAllResponseHeaders());
+                    }
+                }
+            };
+            req.open('HEAD', document.location, false);
+            req.send(null);
+
+            let user = req.getResponseHeader('x-vouch-user')
+            let buttons = "";
+            if (user != null) {
+                buttons += "" +
+                    "<h3>Logout to view less header information</h3>" +
+                    "<div>" +
+                    "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.location.href='/login/react'\" disabled=\"disabled\">" +
+                    "Login" +
+                    "</button>" +
+                    "<button type=\"button\" class=\"btn btn-danger\" onclick=\"window.location.href='/logout/react'\">" +
+                    "Logout" +
+                    "</button>" +
+                    "</div>" +
+                    "<h3>Header Information (authenticated)</h3>";
+            } else {
+                buttons += "" +
+                    "<h3>Login to view additional header information</h3>" +
+                    "<div>" +
+                    "<button type=\"button\" class=\"btn btn-success\" onclick=\"window.location.href='/login/react'\">" +
+                    "Login" +
+                    "</button>" +
+                    "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.location.href='/logout/react'\" disabled=\"disabled\">" +
+                    "Logout" +
+                    "</button>" +
+                    "</div>" +
+                    "<h3>Header Information (non-authenticated)</h3>";
+            }
+
+            document.getElementById("get-buttons").innerHTML = buttons;
+        }
+    </script>
+
     <script type="application/javascript">
         function getHeaders(callback) {
             let req = new XMLHttpRequest();
@@ -61,19 +129,38 @@
             data["UserAgent"] = navigator.userAgent;
 
             //extra code to display the values in html
-            let display = "";
+            let display = "" +
+                "<table style=\"width:100%\">" +
+                "<tr>" +
+                "<th>Index</th>" +
+                "<th>Attribute/Claim</th>" +
+                "<th>Value</th>" +
+                "</tr>";
+            let i_req = 1;
             for (let key in data) {
-                if (key !== "")
-                    display += "<b>" + key + "</b> : " + data[key] + "<br>";
+                if (key !== "") {
+                    //display += "<b>" + key + "</b> : " + data[key] + "<br>";
+                    display += "" +
+                        "<tr>" +
+                        "<td>" + i_req + "</td>" +
+                        "<td><b>" + key + "</b></td>" +
+                        "<td>" + data[key] + "</td>" +
+                        "</tr>";
+                    i_req += 1;
+                }
             }
+            display += "</table>";
             document.getElementById("get-headers").innerHTML = display;
         }
     </script>
 </head>
-<body onload="getHeaders()">
-<h2>Header Information</h2>
-<div id="get-headers">header data goes here</div>
+
+<body onload="getButtons(); getHeaders();">
 <noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="get-buttons" class="container">buttons go here</div>
+<div id="get-headers" class="container">header data goes here</div>
+<br>
+Back to <a href="/">Homepage</a>
 <div id="root"></div>
 <!--
   This HTML file is a template.
